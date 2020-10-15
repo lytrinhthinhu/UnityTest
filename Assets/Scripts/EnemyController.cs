@@ -55,13 +55,13 @@ public class EnemyController : MonoBehaviour
             //Debug.Log("timeActive===========" + timeActive);
             if(timeActive < timeActiveDefenderDEF)
             {
-                timeActive = Time.time - startCountTime;
-                
+                timeActive = Time.time - startCountTime;                
             }
             else
             {
                 //Debug.Log("timeActive===========" + timeActive);
                 transform.GetComponent<Animator>().SetBool("IsActive", true);
+                //if(transform.GetComponent<Animator>().GetBool("ChaseAttacker") == true)
             }
         }
         
@@ -69,7 +69,7 @@ public class EnemyController : MonoBehaviour
     void OnTriggerEnter(Collider other)
     {
         //Debug.Log("OnTriggerEnter===========" + other.gameObject.tag);
-        if(other.gameObject.CompareTag("player"))
+        if(other.gameObject.CompareTag("playerHoldBall"))
         {
             if(isAttacker == false)
             {
@@ -78,6 +78,7 @@ public class EnemyController : MonoBehaviour
                     isChaseAttacker = true;
                     isComebackStartPoint = false;
                     transform.GetComponent<Animator>().SetBool("ChaseAttacker", true);
+                    //transform.tag = "Enemy";
                 }
                 else
                 {
@@ -89,6 +90,8 @@ public class EnemyController : MonoBehaviour
                     isComebackStartPoint = true;
                     transform.GetComponent<Animator>().SetBool("ChaseAttacker", false);
                     transform.GetComponent<Animator>().SetBool("IsActive", false);
+                    //transform.tag = "Untagged";
+                    transform.tag = "Enemy";
                 }
             }            
             

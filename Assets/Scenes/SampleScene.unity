@@ -1893,6 +1893,8 @@ MonoBehaviour:
   GateEnemy: {fileID: 2110452018}
   player: {fileID: 4470352671485639121, guid: dffb47d4868d7384d834d91a9f906ad1, type: 3}
   enemy: {fileID: 7146164356926909905, guid: 876e56ef7e322344887f51a934ea8e5a, type: 3}
+  scoreWinPlayer: 0
+  scoreWinEnemy: 0
 --- !u!4 &2102128400
 Transform:
   m_ObjectHideFlags: 0

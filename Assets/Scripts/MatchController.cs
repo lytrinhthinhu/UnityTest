@@ -13,6 +13,11 @@ public class MatchController : MonoBehaviour
     public GameObject GateEnemy;
     public GameObject player;
     public GameObject enemy;
+    public int scoreWinPlayer;
+    public int scoreWinEnemy;
+    private bool isEndGame;
+    //winer 0: draw, 1: player, 2: enemy
+    private int winner;
     private int timeMax = 140;
     private int timeLeft;
     //private int matchMax = 5;
@@ -26,6 +31,7 @@ public class MatchController : MonoBehaviour
     private int energyPlayer = 0;
     private float timeStartEnergy;
     private int timeStartMatch;
+    
     private List<GameObject> listPlayer = new List<GameObject>();
     private List<GameObject> listEnemy = new List<GameObject>();
     
@@ -42,6 +48,10 @@ public class MatchController : MonoBehaviour
         timeStartEnergy = Time.time;
         timeLeft = timeMax;
         timeStartMatch = (int)Time.time;
+        scoreWinPlayer = 0;
+        scoreWinEnemy = 0;
+        isEndGame = false;
+        winner = 0;
     }
 
     // Update is called once per frame
@@ -50,26 +60,41 @@ public class MatchController : MonoBehaviour
         timeLeft = timeMax - ((int)Time.time - timeStartMatch);
         //timeLeft = timeMax - (int)Time.realtimeSinceStartup;
         timeMath.text = timeLeft.ToString() + "s";
+        if(timeLeft <= 0 && isEndGame == false)    
+        {
+            isEndGame = true;
+            winner = 0;
+        } 
+        CheckEndGame();
     }
+    
     void Update()
     {
-        //Draw time match
-           
-        if(timeLeft <= 0)    
-        {
-            Debug.Log("End game=====================");
-        } 
+        //Draw time match  
         GenerateEnergy();
         GenerateSoldier();  
         UpdatePlayer(); 
         UpdateEnemy();
     }
-
+    void CheckEndGame()
+    {
+        if(isEndGame)
+        {
+            if(winner == 1)
+            {
+                scoreWinPlayer ++;
+            }
+            else if(winner == 2)
+            {
+                scoreWinEnemy ++;
+            }
+        }
+    }
     int GetPlayerHoldBall()
     {
         for(int i = 0; i < listPlayer.Count; i ++)
         {
-            if(listPlayer[i] != null)
+            if(listPlayer[i] != null && listPlayer[i].activeInHierarchy)
             {
                 if(listPlayer[i].gameObject.GetComponent<PlayerController>().isHoldBall)
                     return i;
@@ -128,6 +153,9 @@ public class MatchController : MonoBehaviour
                     }
                 }
                 listPlayer[player].GetComponent<PlayerController>().CarryBall(GateEnemy.transform.position);
+                listPlayer[player].tag = "playerHoldBall";
+                //if is caught = true
+                
             }
         }
     }

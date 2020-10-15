@@ -9,6 +9,7 @@ public class ComeBackStartPoint : StateMachineBehaviour
     {
         base.OnStateEnter(animator, stateInfo, layerIndex);   
         Debug.Log("comeback start=============");
+        animator.tag = "Untagged";
        
     }
 
@@ -16,7 +17,7 @@ public class ComeBackStartPoint : StateMachineBehaviour
     override public void OnStateUpdate(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
     {
         base.OnStateUpdate(animator, stateInfo, layerIndex);
-        Debug.Log("update Comeback111111111111111==============");
+        //Debug.Log("update Comeback111111111111111==============");
         if(animator.gameObject.GetComponent<EnemyController>().isComebackStartPoint == true)
        {    
            Debug.Log("Comeback111111111111111==============");

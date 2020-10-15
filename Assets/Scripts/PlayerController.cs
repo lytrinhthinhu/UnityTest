@@ -7,12 +7,15 @@ public class PlayerController : MonoBehaviour
     // Start is called before the first frame update
     public bool isAttacker;
     public bool isHoldBall;
+    public bool isCaught;
+    public bool isGold;
     private float timeActiveAttackerDEF = 2.5f;
     private float timeActiveDefenderDEF = 4.0f;
     private float timeActive =0.0f;
     private float startCountTime = 0.0f;
     private float normalSpeedAttacker = 1.5f;
     private float carryingSpeed = 0.75f;
+    //private float PassBallSpeed;
     private float normalSpeedDefender = 1.0f;
     
     void Start()
@@ -20,6 +23,8 @@ public class PlayerController : MonoBehaviour
         timeActive = 0.0f;
         startCountTime = Time.time;
         isHoldBall = false;
+        isCaught = false;
+        isGold = false;
     }
 
     // Update is called once per frame
@@ -71,14 +76,28 @@ public class PlayerController : MonoBehaviour
         {
             //Debug.Log("trigger Fence==================");
             transform.gameObject.SetActive(false);
-            //Destroy(transform);             
+            //Destroy(transform);
+            //Destroy(this);             
         }
         else if(other.gameObject.CompareTag("Gate"))
         {
             if(isHoldBall)
+            {
+                //transform.gameObject.GetComponent<MatchController>().isEndGame = true;
+                //transform.gameObject.GetComponent<MatchController>().winner = 1;
+                isGold = true;
                 Debug.Log("Gold ===========");
+            }                
             else
                 transform.gameObject.SetActive(false);
+        }
+        else if(other.gameObject.CompareTag("Enemy"))
+        {
+            isCaught = true;
+            isHoldBall = false;
+            timeActive = 0.0f;
+            startCountTime = Time.time;
+            transform.GetComponent<Animator>().SetBool("IsActive", true);
         }
     }
     public void ChaseBall (GameObject ball)
@@ -112,5 +131,10 @@ public class PlayerController : MonoBehaviour
     {
         transform.rotation = Quaternion.LookRotation(point - transform.position);
         transform.position = Vector3.MoveTowards(transform.position, point, carryingSpeed * Time.deltaTime);
+    }
+    public void PassBall(Vector3 point)
+    {
+        //transform.rotation = Quaternion.LookRotation(point - transform.position);
+        //transform.position = Vector3.MoveTowards(transform.position, point, carryingSpeed * Time.deltaTime);
     }
 }
