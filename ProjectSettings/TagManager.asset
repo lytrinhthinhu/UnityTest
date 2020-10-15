@@ -8,6 +8,9 @@ TagManager:
   - Ball
   - Enemy
   - player
+  - Fence
+  - Gate
+  - playerHoldBall
   layers:
   - Default
   - TransparentFX

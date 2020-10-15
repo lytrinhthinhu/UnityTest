@@ -25,7 +25,8 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        updateActive();        
+        updateActive();    
+        //PlayerMove();    
     }
     void updateActive()
     {
@@ -47,7 +48,7 @@ public class PlayerController : MonoBehaviour
      
     void OnTriggerEnter(Collider other)
     {
-        Debug.Log("OnTriggerEnter===========" + other.gameObject.tag);
+        //Debug.Log("OnTriggerEnter===========" + other.gameObject.tag);
         if(other.gameObject.CompareTag("Ball"))
         {
             isHoldBall = true;
@@ -66,22 +67,50 @@ public class PlayerController : MonoBehaviour
             count = count + 1;
             SetCountText();*/
         }
+        else if(other.gameObject.CompareTag("Fence"))
+        {
+            //Debug.Log("trigger Fence==================");
+            transform.gameObject.SetActive(false);
+            //Destroy(transform);             
+        }
+        else if(other.gameObject.CompareTag("Gate"))
+        {
+            if(isHoldBall)
+                Debug.Log("Gold ===========");
+            else
+                transform.gameObject.SetActive(false);
+        }
     }
     public void ChaseBall (GameObject ball)
     {     
-        //Debug.Log("movePlayer=======");   
+         
         if(timeActive >= timeActiveAttackerDEF)
         {
             
             Vector3 target = ball.transform.position;
+            //Debug.Log("ChaseBall======= x = " + target.x + "  y = " + target.y + " z = " + target.z);  
             transform.position = Vector3.MoveTowards(transform.position, target, normalSpeedAttacker * Time.deltaTime);
         }
         
     }
-    public void GoStraight()
+    public void PlayerMove()
+    {
+        isHoldBall = false;
+        if(isAttacker)
+        {
+            if(timeActive >= timeActiveAttackerDEF)
+            {
+                GoStraight();
+            }
+        }
+    }
+    public void GoStraight()    
     {
         transform.Translate(transform.forward * normalSpeedAttacker * Time.deltaTime);
     }
-    public void CarryBall()
-    {}
+    public void CarryBall(Vector3 point)
+    {
+        transform.rotation = Quaternion.LookRotation(point - transform.position);
+        transform.position = Vector3.MoveTowards(transform.position, point, carryingSpeed * Time.deltaTime);
+    }
 }

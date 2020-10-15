@@ -10,6 +10,7 @@ public class MatchController : MonoBehaviour
     public Text timeMath;
     public GameObject ball;
     public GameObject ground;
+    public GameObject GateEnemy;
     public GameObject player;
     public GameObject enemy;
     private int timeMax = 140;
@@ -24,6 +25,7 @@ public class MatchController : MonoBehaviour
     private int energyEnemy = 0;
     private int energyPlayer = 0;
     private float timeStartEnergy;
+    private int timeStartMatch;
     private List<GameObject> listPlayer = new List<GameObject>();
     private List<GameObject> listEnemy = new List<GameObject>();
     
@@ -39,14 +41,20 @@ public class MatchController : MonoBehaviour
         energyPlayer = 0;
         timeStartEnergy = Time.time;
         timeLeft = timeMax;
+        timeStartMatch = (int)Time.time;
     }
 
     // Update is called once per frame
+    void LateUpdate()
+    {
+        timeLeft = timeMax - ((int)Time.time - timeStartMatch);
+        //timeLeft = timeMax - (int)Time.realtimeSinceStartup;
+        timeMath.text = timeLeft.ToString() + "s";
+    }
     void Update()
     {
         //Draw time match
-        timeLeft = timeMax - (int)Time.realtimeSinceStartup;
-        timeMath.text = timeLeft.ToString() + "s";   
+           
         if(timeLeft <= 0)    
         {
             Debug.Log("End game=====================");
@@ -54,6 +62,7 @@ public class MatchController : MonoBehaviour
         GenerateEnergy();
         GenerateSoldier();  
         UpdatePlayer(); 
+        UpdateEnemy();
     }
 
     int GetPlayerHoldBall()
@@ -67,6 +76,23 @@ public class MatchController : MonoBehaviour
             }
         }
         return -1;
+    }
+    void UpdateEnemy()
+    {
+        if(matchCount %2 != 0)
+        {
+            for(int i = 0; i < listEnemy.Count; i ++)
+            {
+                if(listEnemy[i] != null)
+                {
+                    if(listEnemy[i].gameObject.GetComponent<EnemyController>().isChaseAttacker)
+                    {
+                        int player = GetPlayerHoldBall();
+                        listEnemy[i].gameObject.GetComponent<EnemyController>().ChaseAttacker(listPlayer[player].transform.position);
+                    }
+                }
+            }
+        }
     }
     void UpdatePlayer()
     {
@@ -90,9 +116,18 @@ public class MatchController : MonoBehaviour
             }
             else
             {
-                Debug.Log("GoStraight=============" + listPlayer.Count);
+                //Debug.Log("GoStraight=============" + listPlayer.Count);
                 ball.transform.parent = listPlayer[player].transform;
-                listPlayer[player].GetComponent<PlayerController>().GoStraight();
+                for(int i = 0; i < listPlayer.Count; i ++)
+                {
+                    if( i != player && listPlayer[i] != null)
+                    {
+                        //Debug.Log("update player=============");
+                        listPlayer[i].gameObject.GetComponent<PlayerController>().PlayerMove();
+                            
+                    }
+                }
+                listPlayer[player].GetComponent<PlayerController>().CarryBall(GateEnemy.transform.position);
             }
         }
     }
@@ -200,10 +235,15 @@ public class MatchController : MonoBehaviour
     }
     void CreateEnemy(Vector3 point)
     {   
-        //point.y = 0.5f;       
+        point.y = 0.5f;       
         //GameObject temp =  Instantiate(enemy, point, transform.rotation);
         //temp.transform.
-        listEnemy.Add(Instantiate(enemy, point, transform.rotation));   
+        GameObject temp = Instantiate(enemy, point, transform.rotation);
+        if(matchCount % 2 != 0)
+            temp.gameObject.GetComponent<EnemyController>().isAttacker = false;
+        else
+            temp.gameObject.GetComponent<EnemyController>().isAttacker = true;
+        listEnemy.Add(temp);   
     }
     bool isPlayerLandField (Vector3 point)
     {
@@ -221,7 +261,7 @@ public class MatchController : MonoBehaviour
     {
         float delTime = Time.time - timeStartEnergy;
         //Debug.Log("delTime========== " + delTime);
-        if(delTime >= 0.5f)
+        if(delTime >= 2.0f)
         {
             energyEnemy ++;
             energyPlayer ++;            
