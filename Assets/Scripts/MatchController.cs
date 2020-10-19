@@ -14,6 +14,8 @@ public class MatchController : MonoBehaviour
     public GameObject player;
     public GameObject enemy;
     public Text txtEndGame;
+    public Text txtBoxNameEnemy;
+    public Text txtBoxNamePlayer;
     //public Button btnNext;
     public GameObject EndGameScreen;
     public int scoreWinPlayer;
@@ -99,6 +101,16 @@ public class MatchController : MonoBehaviour
         for(int i = 0; i < listEnergyPlayer.Count; i ++)
         {
             listEnergyPlayer[i].SetEnergy(0.0f, Color.blue);
+        }
+        if(matchCount % 2 != 0)
+        {
+            txtBoxNameEnemy.text = "Enemy (Defender)";
+            txtBoxNamePlayer.text = "Player (Attacker)";
+        }
+        else
+        {
+            txtBoxNameEnemy.text = "Enemy (Attacker)";
+            txtBoxNamePlayer.text = "Player (Defender)";
         }
         //listEnemy = null;
         //listPlayer = null;
