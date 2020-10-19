@@ -13,8 +13,24 @@ public class MatchController : MonoBehaviour
     public GameObject GateEnemy;
     public GameObject player;
     public GameObject enemy;
+    public Text txtEndGame;
+    //public Button btnNext;
+    public GameObject EndGameScreen;
     public int scoreWinPlayer;
     public int scoreWinEnemy;
+    public Energy energyEnemy1;
+    public Energy energyEnemy2;
+    public Energy energyEnemy3;
+    public Energy energyEnemy4;
+    public Energy energyEnemy5;
+    public Energy energyEnemy6;
+    public Energy energyPlayer1;
+    public Energy energyPlayer2;
+    public Energy energyPlayer3;
+    public Energy energyPlayer4;
+    public Energy energyPlayer5;
+    public Energy energyPlayer6;
+    private int energyMax = 6;
     private bool isEndGame;
     //winer 0: draw, 1: player, 2: enemy
     private int winner;
@@ -29,29 +45,63 @@ public class MatchController : MonoBehaviour
     private float offset = 0.5f;    
     private int energyEnemy = 0;
     private int energyPlayer = 0;
-    private float timeStartEnergy;
+    private float timeStartEnergyEnemy;
+    private float timeStartEnergyPlayer;
     private int timeStartMatch;
+    private float speedBall = 1.5f;
     
     private List<GameObject> listPlayer = new List<GameObject>();
     private List<GameObject> listEnemy = new List<GameObject>();
+    private List<Energy> listEnergyEnemy = new List<Energy>();
+    private List<Energy> listEnergyPlayer = new List<Energy>();
     
     // Start is called before the first frame update
     void Start()
     {
+        scoreWinPlayer = 0;
+        scoreWinEnemy = 0;
+        InnitGame();
+    }
+    public void InnitGame()
+    {
+        Debug.Log("init===============");
+        Time.timeScale = 1.0f;
         timeMath.text = "140s";
-        /*RectTransform rt = (RectTransform)ground.transform;
-        Debug.Log("x = " + rt.rect.x + "   y = " + rt.rect.y);
-        Debug.Log("width = " + rt.rect.width + "   height = " + rt.rect.height);*/
+        EndGameScreen.SetActive(false);        
         GenerateBall();
         energyEnemy = 0;
         energyPlayer = 0;
-        timeStartEnergy = Time.time;
+        timeStartEnergyEnemy = Time.time;
+        timeStartEnergyPlayer = Time.time;
         timeLeft = timeMax;
         timeStartMatch = (int)Time.time;
-        scoreWinPlayer = 0;
-        scoreWinEnemy = 0;
+        
         isEndGame = false;
         winner = 0;
+
+        listEnergyEnemy.Add(energyEnemy1);
+        listEnergyEnemy.Add(energyEnemy2);
+        listEnergyEnemy.Add(energyEnemy3);
+        listEnergyEnemy.Add(energyEnemy4);
+        listEnergyEnemy.Add(energyEnemy5);
+        listEnergyEnemy.Add(energyEnemy6);
+        for(int i = 0; i < listEnergyEnemy.Count; i ++)
+        {
+            listEnergyEnemy[i].SetEnergy(0.0f, Color.red);
+        }
+
+        listEnergyPlayer.Add(energyPlayer1);
+        listEnergyPlayer.Add(energyPlayer2);
+        listEnergyPlayer.Add(energyPlayer3);
+        listEnergyPlayer.Add(energyPlayer4);
+        listEnergyPlayer.Add(energyPlayer5);
+        listEnergyPlayer.Add(energyPlayer6); 
+        for(int i = 0; i < listEnergyPlayer.Count; i ++)
+        {
+            listEnergyPlayer[i].SetEnergy(0.0f, Color.blue);
+        }
+        //listEnemy = null;
+        //listPlayer = null;
     }
 
     // Update is called once per frame
@@ -63,7 +113,7 @@ public class MatchController : MonoBehaviour
         if(timeLeft <= 0 && isEndGame == false)    
         {
             isEndGame = true;
-            winner = 0;
+            winner = 0; //draw
         } 
         CheckEndGame();
     }
@@ -78,20 +128,44 @@ public class MatchController : MonoBehaviour
     }
     void CheckEndGame()
     {
+        if(listPlayer != null)
+        {
+            for(int i = 0; i < listPlayer.Count; i ++)
+            {
+                if(listPlayer[i] != null && listPlayer[i].activeInHierarchy)
+                {
+                    if(listPlayer[i].gameObject.GetComponent<PlayerController>().isGold)
+                    {
+                        isEndGame = true;
+                        winner = 1; //player win
+                    }
+                        
+                }
+            }
+        }
         if(isEndGame)
         {
-            if(winner == 1)
+            if(winner == 0)
+            {
+                txtEndGame.text = "Draw";                
+            }
+            else if(winner == 1)
             {
                 scoreWinPlayer ++;
+                txtEndGame.text = "Player win";                
             }
             else if(winner == 2)
             {
+                txtEndGame.text = "Enemy win";
                 scoreWinEnemy ++;
             }
+            EndGameScreen.SetActive(true);
+            Time.timeScale = 0.0f;
         }
     }
     int GetPlayerHoldBall()
     {
+        //Debug.Log("GetPlayerHoldBall============");
         for(int i = 0; i < listPlayer.Count; i ++)
         {
             if(listPlayer[i] != null && listPlayer[i].activeInHierarchy)
@@ -102,64 +176,133 @@ public class MatchController : MonoBehaviour
         }
         return -1;
     }
-    void UpdateEnemy()
+    int GetPlayerCaught()
     {
-        if(matchCount %2 != 0)
+        for(int i = 0; i < listPlayer.Count; i ++)
         {
-            for(int i = 0; i < listEnemy.Count; i ++)
+            if(listPlayer[i] != null && listPlayer[i].activeInHierarchy)
             {
-                if(listEnemy[i] != null)
+                if(listPlayer[i].gameObject.GetComponent<PlayerController>().isCaught)
                 {
-                    if(listEnemy[i].gameObject.GetComponent<EnemyController>().isChaseAttacker)
-                    {
-                        int player = GetPlayerHoldBall();
-                        listEnemy[i].gameObject.GetComponent<EnemyController>().ChaseAttacker(listPlayer[player].transform.position);
-                    }
+                    return i;
                 }
             }
         }
+        return -1;
+    }
+    int LookForPlayerNearest(int index)
+    {
+        if(listPlayer.Count == 1)
+            return -1;
+        GameObject player = listPlayer[index];
+        Vector3 point = player.transform.position;
+        //listPlayer.RemoveAt(index);
+        int indexNearest = -1;
+        float distMin = 0.0f;
+        for(int i = 0; i < listPlayer.Count; i ++)
+        {
+            if(listPlayer[i] != null && listPlayer[i].activeInHierarchy && listPlayer[i].gameObject.GetComponent<PlayerController>().IsActive)
+            {
+                distMin = Vector3.Distance(point, listPlayer[i].transform.position);
+                indexNearest = i;
+                break;
+            }
+        }
+        for(int i = indexNearest + 1; i < listPlayer.Count; i ++)
+        {
+            if(listPlayer[i] != null && listPlayer[i].activeInHierarchy && listPlayer[i].gameObject.GetComponent<PlayerController>().IsActive)
+            {
+                float dist = Vector3.Distance(point, listPlayer[i].transform.position);
+                if(dist < distMin)
+                {
+                    distMin = dist;
+                    indexNearest = i;
+                } 
+            }
+        }
+        //listPlayer.Add(player);
+        return indexNearest;
     }
     void UpdatePlayer()
     {
+        if(isEndGame)
+            return;
         //Debug.Log("update player=============");
         if(matchCount % 2 != 0)
         {
             //Debug.Log("11111111111111=============");
             int player = GetPlayerHoldBall();
-            if(player == -1)
+            if(player == -1) 
             {
-                //Debug.Log("222222222222222222=============" + listPlayer.Count);
-                for(int i = 0; i < listPlayer.Count; i ++)
-                {
-                    if(listPlayer[i] != null)
+                PlayerChaseBall();               
+                int playerCaught = GetPlayerCaught();
+                //Debug.Log("GetPlayerCaught =============" + playerCaught); 
+                if(playerCaught != -1)
+                {  
+                    int playerNearest = LookForPlayerNearest(playerCaught);  
+                    //Debug.Log("LookForPlayerNearest =============" + playerNearest);                    
+                    if(playerNearest == -1)
                     {
-                        //Debug.Log("update player=============");
-                        listPlayer[i].gameObject.GetComponent<PlayerController>().ChaseBall(ball);
-                            
+                        isEndGame = true;
+                        winner = 2; //enemy win
+                        scoreWinEnemy ++;
+                        return;
+                    }
+                    else
+                    {
+                        //listPlayer[playerCaught].transform.GetComponent<PlayerController>().isCaught = false;
+                        //ball.transform.GetComponent<BallController>().Move(listPlayer[playerNearest].transform.position);
+                        ball.transform.parent = null;
+                        ball.transform.position = Vector3.MoveTowards(ball.transform.position, listPlayer[playerNearest].transform.position, speedBall * Time.deltaTime);
+                        //PlayerChaseBall();
+                        /*for(int i = 0; i < listPlayer.Count; i ++)
+                        {
+                            if(listPlayer[i] != null && listPlayer[i].activeInHierarchy)
+                            {
+                                //Debug.Log("update player=============");
+                                listPlayer[i].gameObject.GetComponent<PlayerController>().PlayerMove();
+                                    
+                            }
+                        }*/
                     }
                 }
             }
             else
             {
-                //Debug.Log("GoStraight=============" + listPlayer.Count);
-                ball.transform.parent = listPlayer[player].transform;
+                //Debug.Log("GetPlayerHoldBall ============= " + player); 
+                //ball.transform.parent = listPlayer[player].transform;
                 for(int i = 0; i < listPlayer.Count; i ++)
                 {
-                    if( i != player && listPlayer[i] != null)
+                    if( i != player && listPlayer[i] != null && listPlayer[i].activeInHierarchy)
                     {
-                        //Debug.Log("update player=============");
+                       // if(i == 0)
+                        //Debug.Log("PlayerMove=============" + i);
                         listPlayer[i].gameObject.GetComponent<PlayerController>().PlayerMove();
                             
                     }
                 }
                 listPlayer[player].GetComponent<PlayerController>().CarryBall(GateEnemy.transform.position);
-                listPlayer[player].tag = "playerHoldBall";
+                listPlayer[player].tag = "ActackerHoldBall";
                 //if is caught = true
                 
             }
         }
     }
-    
+    void PlayerChaseBall()
+    {
+        if(ball.transform.parent != null)
+            return;
+        for(int i = 0; i < listPlayer.Count; i ++)
+        {
+            if(listPlayer[i] != null && listPlayer[i].activeInHierarchy)
+            {
+                //if(i == 0)
+                //Debug.Log("PlayerChaseBall=============" + i);
+                listPlayer[i].gameObject.GetComponent<PlayerController>().ChaseBall(ball);
+                    
+            }
+        }
+    }
     void GenerateBall ()
     {
        //Debug.Log("111111111111 x = " + ball.transform.position.x + "   z = " + ball.transform.position.z);
@@ -183,6 +326,8 @@ public class MatchController : MonoBehaviour
     }
     void GenerateSoldier()
     {
+        if(isEndGame)
+            return;
         if(Input.GetMouseButtonDown(0))
         {
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
@@ -198,6 +343,7 @@ public class MatchController : MonoBehaviour
                         if(energyPlayer > 1)
                         {
                             CreatePlayer(hit.point);
+                            EnergyCostPlayer(2);
                             energyPlayer = energyPlayer - 2;
                         }
                     }
@@ -226,6 +372,7 @@ public class MatchController : MonoBehaviour
                         if(energyEnemy > 2)
                         {
                             CreateEnemy(hit.point);
+                            EnergyCostEnemy(3);
                             energyEnemy = energyEnemy - 3;
                         }
                     }
@@ -287,21 +434,95 @@ public class MatchController : MonoBehaviour
     }
     void GenerateEnergy()
     {
-        float delTime = Time.time - timeStartEnergy;
-        //Debug.Log("delTime========== " + delTime);
-        if(delTime >= 2.0f)
+        //Debug.Log("delTime========== " + energyEnemy);
+        float delTimeEnemy = Time.time - timeStartEnergyEnemy;
+        if(energyEnemy < energyMax) 
+        {   
+            listEnergyEnemy[energyEnemy].SetEnergy(delTimeEnemy, Color.red);
+        }
+        float delTimePlayer = Time.time - timeStartEnergyPlayer;
+        if(energyPlayer < energyMax)
         {
-            energyEnemy ++;
-            energyPlayer ++;            
-            timeStartEnergy = Time.time;
-            if(energyEnemy > 6)
-                energyEnemy = 6;
-            if(energyPlayer > 6)
-                energyPlayer = 6;
+            listEnergyPlayer[energyPlayer].SetEnergy(delTimePlayer,Color.blue);
+        }
+        //energyBarEnemy.SetEnergy(delTime);
+        //Debug.Log("delTime========== " + delTime);
+        if(delTimeEnemy >= 2.0f)
+        {
+            energyEnemy ++; 
+            timeStartEnergyEnemy = Time.time;           
+            if(energyEnemy > energyMax)
+                energyEnemy = energyMax; 
+        }
+        if(delTimePlayer >= 2.0f)
+        {
+            energyPlayer ++;
+            timeStartEnergyPlayer = Time.time;
+            if(energyEnemy > energyMax)
+                energyEnemy = energyMax;
+            if(energyPlayer > energyMax)
+                energyPlayer = energyMax ;
             
-            //Debug.Log("energyPlayer========== " + energyPlayer);
-            //Debug.Log("energyEnemy+++++++++++ " + energyEnemy);
+            
         }
     }
-    
+    public void EnergyCostEnemy(int value)
+    {
+        if(energyEnemy < energyMax)
+            listEnergyEnemy[energyEnemy - value].SetEnergy(listEnergyEnemy[energyEnemy].GetEnemy(), Color.red);
+        else
+        {
+            listEnergyEnemy[energyEnemy - value].SetEnergy(0.0f, Color.red);
+            timeStartEnergyEnemy = Time.time;
+        }
+        
+        for(int i = 0; i <= value - 1; i ++)
+        {
+            if(energyEnemy - i < energyMax)
+                listEnergyEnemy[energyEnemy - i].SetEnergy(0.0f, Color.red);
+        }
+    }
+    public void EnergyCostPlayer(int value)
+    {
+        if(energyPlayer < energyMax)
+            listEnergyPlayer[energyPlayer - value].SetEnergy(listEnergyPlayer[energyPlayer].GetEnemy(), Color.blue);
+        else
+        {
+            listEnergyPlayer[energyPlayer - value].SetEnergy(0.0f, Color.blue);
+            timeStartEnergyPlayer = Time.time;
+        }
+        
+        for(int i = 0; i <= value - 1; i ++)
+        {
+            if(energyPlayer - i < energyMax)
+                listEnergyPlayer[energyPlayer - i].SetEnergy(0.0f, Color.blue);
+        }
+    }
+    void UpdateEnemy()
+    {
+        if(isEndGame)
+            return;
+        if(matchCount %2 != 0)
+        {
+            for(int i = 0; i < listEnemy.Count; i ++)
+            {
+                if(listEnemy[i] != null)
+                {
+                    if(listEnemy[i].gameObject.GetComponent<EnemyController>().isChaseAttacker)
+                    {
+                        int player = GetPlayerHoldBall();
+                        if(player == -1)
+                        {
+                            if(listEnemy[i].tag == "Comeback")   
+                            { 
+                                listEnemy[i].transform.GetComponent<EnemyController>().Comeback();                                
+                            }
+                        }
+                        else
+                            listEnemy[i].gameObject.GetComponent<EnemyController>().ChaseAttacker(listPlayer[player]);
+                    }
+                }
+            }
+        }
+    }
 }

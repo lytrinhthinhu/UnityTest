@@ -6,11 +6,13 @@ TagManager:
   tags:
   - Ground
   - Ball
-  - Enemy
-  - player
   - Fence
   - Gate
-  - playerHoldBall
+  - AttackerIsCaught
+  - ActackerHoldBall
+  - Defender
+  - Attacker
+  - Comeback
   layers:
   - Default
   - TransparentFX

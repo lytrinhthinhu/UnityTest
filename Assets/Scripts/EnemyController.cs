@@ -68,43 +68,95 @@ public class EnemyController : MonoBehaviour
     }
     void OnTriggerEnter(Collider other)
     {
-        //Debug.Log("OnTriggerEnter===========" + other.gameObject.tag);
-        if(other.gameObject.CompareTag("playerHoldBall"))
+        Debug.Log("OnTriggerEnter===========" + other.gameObject.tag);
+        if(other.gameObject.CompareTag("ActackerHoldBall"))
         {
             if(isAttacker == false)
             {
                 if(isChaseAttacker == false)
                 {
+                    //Debug.Log("isChaseAttacker == false" + isChaseAttacker);
                     isChaseAttacker = true;
                     isComebackStartPoint = false;
                     transform.GetComponent<Animator>().SetBool("ChaseAttacker", true);
-                    //transform.tag = "Enemy";
+                    transform.tag = "Defender";
                 }
                 else
                 {
-                    Debug.Log("isChaseAttacker===========" + isChaseAttacker);
+                    Debug.Log("isChaseAttacker == true" + isChaseAttacker);
                     isChaseAttacker = false;
                     timeActive = 0.0f;
                     startCountTime = Time.time;
-                    isChaseAttacker = false;
                     isComebackStartPoint = true;
                     transform.GetComponent<Animator>().SetBool("ChaseAttacker", false);
                     transform.GetComponent<Animator>().SetBool("IsActive", false);
-                    //transform.tag = "Untagged";
-                    transform.tag = "Enemy";
+                    transform.tag = "Untagged";
+                    //transform.tag = "Enemy";
                 }
             }            
             
         }        
     }
-
-    public void ChaseAttacker(Vector3 point)
+    /*void OnTriggerStay(Collider other)
     {
+        if (other.attachedRigidbody)
+        {
+            if(other.gameObject.CompareTag("ActackerHoldBall"))
+        {
+            if(isAttacker == false)
+            {
+                if(isChaseAttacker == false)
+                {
+                    //Debug.Log("isChaseAttacker == false" + isChaseAttacker);
+                    isChaseAttacker = true;
+                    isComebackStartPoint = false;
+                    transform.GetComponent<Animator>().SetBool("ChaseAttacker", true);
+                    transform.tag = "Defender";
+                }
+                else
+                {
+                    Debug.Log("isChaseAttacker == true" + isChaseAttacker);
+                    isChaseAttacker = false;
+                    timeActive = 0.0f;
+                    startCountTime = Time.time;
+                    isComebackStartPoint = true;
+                    transform.GetComponent<Animator>().SetBool("ChaseAttacker", false);
+                    transform.GetComponent<Animator>().SetBool("IsActive", false);
+                    transform.tag = "Untagged";
+                    //transform.tag = "Enemy";
+                }
+            }            
+            
+        } 
+        }
+    }*/
+
+    //public void ChaseAttacker(Vector3 point)
+    public void ChaseAttacker(GameObject obj)
+    {
+        Vector3 point = obj.transform.position;
         if(timeActive >= timeActiveDefenderDEF)
         {
+            /*if(Vector3.Distance(point, transform.position) <= 1.0f)
+            {
+                Comeback();                
+                //transform.tag = "Untagged";
+                transform.tag = "Comeback";
+                //OnTriggerEnter(obj.GetComponent<Collider>());
+            }*/
             transform.rotation = Quaternion.LookRotation(point - transform.position);
             transform.position = Vector3.MoveTowards(transform.position, point, normalSpeedDefender * Time.deltaTime);
         }
         
+    }
+    public void Comeback()
+    {
+        isChaseAttacker = false;
+        timeActive = 0.0f;
+        startCountTime = Time.time;
+        isChaseAttacker = false;
+        isComebackStartPoint = true;
+        transform.GetComponent<Animator>().SetBool("ChaseAttacker", false);
+        transform.GetComponent<Animator>().SetBool("IsActive", false);
     }
 }

@@ -8,7 +8,7 @@ public class ComeBackStartPoint : StateMachineBehaviour
     override public void OnStateEnter(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
     {
         base.OnStateEnter(animator, stateInfo, layerIndex);   
-        Debug.Log("comeback start=============");
+        //Debug.Log("comeback start=============");
         animator.tag = "Untagged";
        
     }
@@ -19,13 +19,14 @@ public class ComeBackStartPoint : StateMachineBehaviour
         base.OnStateUpdate(animator, stateInfo, layerIndex);
         //Debug.Log("update Comeback111111111111111==============");
         if(animator.gameObject.GetComponent<EnemyController>().isComebackStartPoint == true)
-       {    
-           Debug.Log("Comeback111111111111111==============");
-           Vector3 vt = animator.gameObject.GetComponent<EnemyController>().startPoint;
-           float speed = animator.gameObject.GetComponent<EnemyController>().returnSpeedDefender;
-           animator.transform.position = Vector3.MoveTowards(animator.transform.position, vt, speed * Time.deltaTime);
-           //transform.position = Vector3.MoveTowards(transform.position, point, normalSpeedDefender * Time.deltaTime);
-       }
+        {    
+            //Debug.Log("Comeback111111111111111==============");
+            Vector3 vt = animator.gameObject.GetComponent<EnemyController>().startPoint;
+            float speed = animator.gameObject.GetComponent<EnemyController>().returnSpeedDefender;
+            //animator.transform.rotation = Quaternion.LookRotation(vt - animator.transform.position);
+            animator.transform.position = Vector3.MoveTowards(animator.transform.position, vt, speed * Time.deltaTime);
+            //transform.position = Vector3.MoveTowards(transform.position, point, normalSpeedDefender * Time.deltaTime);
+        }
     }
 
     // OnStateExit is called when a transition ends and the state machine finishes evaluating this state

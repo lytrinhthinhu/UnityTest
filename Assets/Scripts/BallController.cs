@@ -5,7 +5,7 @@ using UnityEngine;
 public class BallController : MonoBehaviour
 {
     //public bool isHolding;
-    private float speed = 1.5f;
+    //private float speed = 1.5f;
     // Start is called before the first frame update
     void Start()
     {
@@ -20,7 +20,7 @@ public class BallController : MonoBehaviour
     public void Move(Vector3 point)
     {
         //transform.rotation = Quaternion.LookRotation(point - transform.position);
-        transform.position = Vector3.MoveTowards(transform.position, point, speed * Time.deltaTime);
+        //transform.position = Vector3.MoveTowards(transform.position, point, speed * Time.deltaTime);
     }
     /*void OnTriggerEnter(Collider other)
     {

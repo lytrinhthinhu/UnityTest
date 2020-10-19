@@ -9,6 +9,7 @@ public class PlayerController : MonoBehaviour
     public bool isHoldBall;
     public bool isCaught;
     public bool isGold;
+    public bool IsActive;
     private float timeActiveAttackerDEF = 2.5f;
     private float timeActiveDefenderDEF = 4.0f;
     private float timeActive =0.0f;
@@ -25,6 +26,7 @@ public class PlayerController : MonoBehaviour
         isHoldBall = false;
         isCaught = false;
         isGold = false;
+        IsActive = false;
     }
 
     // Update is called once per frame
@@ -35,16 +37,27 @@ public class PlayerController : MonoBehaviour
     }
     void updateActive()
     {
+        if(IsActive)
+            return;
         //Debug.Log("timeActive===========" + timeActive);
         if(isAttacker)
         {
             if(timeActive < timeActiveAttackerDEF)
             {
                 timeActive = Time.time - startCountTime;
+                transform.Find("Direction").transform.gameObject.SetActive(false);
+                
                 //Debug.Log("timeActive===========" + timeActive);
             }
             else
             {
+                IsActive = true;
+                isCaught = false;
+                isGold = false;
+                isHoldBall = false;
+                transform.tag = "Attacker";
+                //transform.GetChild(0).gameObject.SetActive(true);
+				//Debug.Log("active player==========" + isHoldBall);
                 transform.GetComponent<Animator>().SetBool("IsActive", true);
             }
         } 
@@ -53,29 +66,24 @@ public class PlayerController : MonoBehaviour
      
     void OnTriggerEnter(Collider other)
     {
-        //Debug.Log("OnTriggerEnter===========" + other.gameObject.tag);
+        if(!IsActive)
+            return;
+        //Debug.Log("player OnTriggerEnter===========" + other.gameObject.tag);
         if(other.gameObject.CompareTag("Ball"))
         {
-            isHoldBall = true;
-            //other.transform.parent = transform;
-            //other.gameObject.GetComponent<BallController>().isHolding = true;
-            /*Animator anim = other.GetComponent<Animator>();
-            int color = anim.GetInteger("IsColor");
-            anim.SetTrigger("DeActive");
-            if(color == 1)
+            //Debug.Log("other.gameObject.CompareTag(Ball)===========" + other.transform.parent);
+            if(other.transform.parent == null)
             {
-                animPlayer.SetTrigger("IsDie");
-                //Destroy(this.gameObject, 5);
+                other.transform.parent = transform;
+                isHoldBall = true;            
+                //Debug.Log("other.gameObject.CompareTag(Ball)===========" + isHoldBall);
             }
-            //other.gameObject.SetActive(false);
-            //listPickUp.Dequeue();
-            count = count + 1;
-            SetCountText();*/
         }
         else if(other.gameObject.CompareTag("Fence"))
         {
             //Debug.Log("trigger Fence==================");
-            transform.gameObject.SetActive(false);
+            if(!isHoldBall)
+                transform.gameObject.SetActive(false);
             //Destroy(transform);
             //Destroy(this);             
         }
@@ -91,23 +99,55 @@ public class PlayerController : MonoBehaviour
             else
                 transform.gameObject.SetActive(false);
         }
-        else if(other.gameObject.CompareTag("Enemy"))
+        else if(other.gameObject.CompareTag("Defender"))
         {
-            isCaught = true;
-            isHoldBall = false;
-            timeActive = 0.0f;
-            startCountTime = Time.time;
-            transform.GetComponent<Animator>().SetBool("IsActive", true);
+            if(isHoldBall)
+            {
+                /*isCaught = true;
+                isHoldBall = false;
+				//Debug.Log("CompareTag enemy==========" + isHoldBall);
+                timeActive = 0.0f;
+                startCountTime = Time.time;
+                IsActive = false;
+                transform.GetComponent<Animator>().SetBool("IsActive", false);
+                transform.tag = "Attacker";
+                other.tag = "Comeback";*/
+                OnTriggerDefender();
+                other.tag = "Comeback";
+            }
         }
     }
+    /*void OnTriggerStay(Collider other)
+    {
+        if (other.attachedRigidbody)
+        {
+            if(other.gameObject.CompareTag("Defender"))
+            {
+                if(isHoldBall)
+                {
+                    Debug.Log("CompareTag enemy==========" + isHoldBall);
+                    /*isCaught = true;
+                    isHoldBall = false;
+                    timeActive = 0.0f;
+                    startCountTime = Time.time;
+                    IsActive = false;
+                    transform.GetComponent<Animator>().SetBool("IsActive", false);
+                    transform.tag = "Attacker";
+                    other.tag = "Comeback";**
+                    OnTriggerDefender();
+                    other.tag = "Comeback";
+                }
+            }
+        }
+    }*/
     public void ChaseBall (GameObject ball)
     {     
          
-        if(timeActive >= timeActiveAttackerDEF)
-        {
-            
+        if(IsActive)
+        {            
             Vector3 target = ball.transform.position;
             //Debug.Log("ChaseBall======= x = " + target.x + "  y = " + target.y + " z = " + target.z);  
+            transform.rotation = Quaternion.LookRotation(target - transform.position);
             transform.position = Vector3.MoveTowards(transform.position, target, normalSpeedAttacker * Time.deltaTime);
         }
         
@@ -115,9 +155,10 @@ public class PlayerController : MonoBehaviour
     public void PlayerMove()
     {
         isHoldBall = false;
+		//Debug.Log("PlayerMove===========" + isHoldBall);
         if(isAttacker)
         {
-            if(timeActive >= timeActiveAttackerDEF)
+            if(IsActive && !isHoldBall)
             {
                 GoStraight();
             }
@@ -125,6 +166,9 @@ public class PlayerController : MonoBehaviour
     }
     public void GoStraight()    
     {
+        Vector3 vt = transform.position;
+        vt.z = 14.0f;
+        transform.rotation = Quaternion.LookRotation(vt - transform.position);
         transform.Translate(transform.forward * normalSpeedAttacker * Time.deltaTime);
     }
     public void CarryBall(Vector3 point)
@@ -132,9 +176,21 @@ public class PlayerController : MonoBehaviour
         transform.rotation = Quaternion.LookRotation(point - transform.position);
         transform.position = Vector3.MoveTowards(transform.position, point, carryingSpeed * Time.deltaTime);
     }
+    public void OnTriggerDefender()
+    {
+        isCaught = true;
+        isHoldBall = false;
+        //Debug.Log("CompareTag enemy==========" + isHoldBall);
+        timeActive = 0.0f;
+        startCountTime = Time.time;
+        IsActive = false;
+        transform.GetComponent<Animator>().SetBool("IsActive", false);
+        transform.tag = "Attacker";        
+    }
     public void PassBall(Vector3 point)
     {
         //transform.rotation = Quaternion.LookRotation(point - transform.position);
         //transform.position = Vector3.MoveTowards(transform.position, point, carryingSpeed * Time.deltaTime);
     }
+    
 }
